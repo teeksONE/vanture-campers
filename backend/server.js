@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000
 app.use(cors())
 app.use(express.json())
 
-//Routes
+// Routes
 app.use('/bookings', bookingsRouter)
 
 // Health check
@@ -19,9 +19,7 @@ app.get('/', (req, res) => {
     res.json({ message: 'Vanture Campers backend is running' })
 })
 
-
-//Starting server
+// Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
-
