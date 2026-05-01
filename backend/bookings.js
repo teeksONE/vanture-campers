@@ -107,8 +107,8 @@ router.post('/', async (req, res) => {
     const {
         customer_name,
         customer_email,
-        cutomer_phone,
-        nav_id,
+        customer_phone,
+        van_id,
         start_date,
         end_date,
         addons = {}
