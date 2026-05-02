@@ -179,4 +179,22 @@ router.get('/', async (req, res) => {
     }
 })
 
+//GET - booked dates for a van
+router.get('/booked-dates/:van_id', async (req, res) => {
+    const { van_id } = req.params
+
+    try {
+        const { data, error } = await supabase
+        .from('bookings')
+        .select('start_date, end_date')
+        .eq('van_id', van_id.toLowerCase())
+        .neq('status', 'cancelled')
+
+        if (error) throw error
+        res.json(data)
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
 module.exports = router
