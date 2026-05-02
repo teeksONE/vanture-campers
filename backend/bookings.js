@@ -9,7 +9,8 @@ const PRICING = {
         chevy: 137,
         eddie: 152
     },
-    insurance_per_night: 11,
+    insurance_per_night: 15,
+    damage_deposit: 500,
     unlimited_km_per_night: 7.50,
     bike_rack_per_night: 10,
     vancouver_pickup: 250,
@@ -42,6 +43,7 @@ function calculatePrice(van_id, nights, addons) {
     const subtotal = base_price + insurance + addons_total
     const deposit_amount = subtotal * PRICING.deposit_percent
     const total_price = subtotal
+    const damage_deposit = PRICING.damage_deposit
 
     return {
         base_price,
@@ -49,11 +51,12 @@ function calculatePrice(van_id, nights, addons) {
         addons_total,
         subtotal,
         deposit_amount,
-        total_price
+        damage_deposit,
+        total_price: subtotal + damage_deposit
     }
 }
 
-//Get - check availability
+// GET - check van availability
 router.get('/availability/:van_id', async (req, res) => {
     const { van_id } = req.params
     const { start_date, end_date } = req.query
@@ -64,18 +67,16 @@ router.get('/availability/:van_id', async (req, res) => {
             .select('start_date, end_date')
             .eq('van_id', van_id.toLowerCase())
             .neq('status', 'cancelled')
-            .or(`start_date.lte.${end_date},end_date.gte.${start_date}`)
+            .lt('start_date', end_date)
+            .gt('end_date', start_date)
 
         if (error) throw error
 
         const available = data.length === 0
 
-        res.json({
-            availabled,
-            conflicts: data
-        })
+        res.json({ available, conflicts: data })
     } catch (err) {
-        res.status(500).json({ error: err.messaged })
+        res.status(500).json({ error: err.message })
     }
 })
 
