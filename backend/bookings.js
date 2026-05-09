@@ -5,9 +5,9 @@ const supabase = require('./supabase')
 //Pricing table
 const PRICING = {
     vans: {
-        johnny: 142,
-        eddie: 152,
-        chevy: 137
+        johnny: 140,
+        eddie: 150,
+        chevy: 135
     },
     insurance_per_night: 15,
     collision_insurance_per_night: 10,

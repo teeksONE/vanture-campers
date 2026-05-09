@@ -62,18 +62,27 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         return res.status(400).json({ error: `Webhook error: ${err.message}` })
     }
 
-    // Handle successful payment
     if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object
         const booking_id = paymentIntent.metadata.booking_id
 
-        // Update booking status to confirmed
-        await supabase
+        // Update booking status
+        const { data: booking, error } = await supabase
             .from('bookings')
             .update({ status: 'confirmed' })
             .eq('id', booking_id)
+            .select()
+            .single()
 
-        console.log(`Booking ${booking_id} confirmed`)
+        if (!error && booking) {
+            try {
+                const { sendBookingConfirmation } = require('./email')
+                await sendBookingConfirmation(booking)
+                console.log(`Booking ${booking_id} confirmed and email sent`)
+            } catch (e) {
+                console.error('Email send failed:', e)
+            }
+        }
     }
 
     res.json({ received: true })
