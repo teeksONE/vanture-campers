@@ -10,6 +10,9 @@ const blockedDatesRouter = require('./blocked-dates')
 const app = express()
 const PORT = process.env.PORT || 3000
 
+// Middleware
+app.use(cors())
+
 // Public config — frontend asks backend for safe-to-expose keys
 app.get('/config', (req, res) => {
     res.json({
@@ -18,9 +21,6 @@ app.get('/config', (req, res) => {
         supabase_anon_key: process.env.SUPABASE_ANON_KEY
     })
 })
-
-// Middleware
-app.use(cors())
 
 // Webhook needs raw body - must be before express.json()
 app.use('/payments/webhook', express.raw({ type: 'application/json' }))
