@@ -171,11 +171,12 @@ router.post('/', async (req, res) => {
         //Check availability
 
         const { data: conflicts, error: availError } = await supabase
-            .from('bookings')
-            .select('id')
-            .eq('van_id', van_id.toLowerCase())
-            .neq('status', 'cancelled')
-            .or(`start_date.lte.${end_date},end_date.gte.${start_date}`)
+        .from('bookings')
+        .select('id')
+        .eq('van_id', van_id.toLowerCase())
+        .neq('status', 'cancelled')
+        .lt('start_date', end_date)
+        .gt('end_date', start_date)
 
         if (availError) throw availError
         if (conflicts.length > 0) throw new Error('Van is not available for these dates')
@@ -192,7 +193,14 @@ router.post('/', async (req, res) => {
                 end_date,
                 nights,
                 ...pricing,
-                ...addons,
+                collision_insurance_selected: addons.collision_insurance || false,
+                unlimited_km: addons.unlimited_km || false,
+                bike_rack: addons.bike_rack || false,
+                vancouver_pickup: addons.vancouver_pickup || false,
+                vancouver_dropoff: addons.vancouver_dropoff || false,
+                yvr_pickup: addons.yvr_pickup || false,
+                yvr_dropoff: addons.yvr_dropoff || false,
+                pet_cleaning: addons.pet_cleaning || false,
                 status: 'pending'
             }])
             .select()
