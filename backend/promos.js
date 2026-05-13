@@ -18,11 +18,11 @@ router.get('/', async (req, res) => {
 
 // POST create promo
 router.post('/', async (req, res) => {
-    const { code, discount_type, discount_value, valid_from, valid_until, max_uses } = req.body
+    const { code, discount_type, discount_value, valid_from, valid_until, max_uses, min_nights } = req.body
     try {
         const { data, error } = await supabase
             .from('promo_codes')
-            .insert([{ code, discount_type, discount_value, valid_from, valid_until, max_uses }])
+            .insert([{ code, discount_type, discount_value, valid_from, valid_until, max_uses, min_nights }])
             .select()
         if (error) throw error
         res.json(data[0])
@@ -62,7 +62,7 @@ router.delete('/:id', async (req, res) => {
 
 // POST validate code (for customers applying it)
 router.post('/validate', async (req, res) => {
-    const { code } = req.body
+    const { code, nights } = req.body
     try {
         const { data, error } = await supabase
             .from('promo_codes')
@@ -77,6 +77,9 @@ router.post('/validate', async (req, res) => {
         if (data.valid_from && now < data.valid_from) return res.status(400).json({ error: 'Code not yet active' })
         if (data.valid_until && now > data.valid_until) return res.status(400).json({ error: 'Code has expired' })
         if (data.max_uses && data.times_used >= data.max_uses) return res.status(400).json({ error: 'Code has reached usage limit' })
+        if (data.min_nights && nights && nights < data.min_nights) {
+            return res.status(400).json({ error: `This code requires a minimum of ${data.min_nights} nights` })
+        }
 
         res.json(data)
     } catch (err) {

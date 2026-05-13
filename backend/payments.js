@@ -66,7 +66,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         const paymentIntent = event.data.object
         const booking_id = paymentIntent.metadata.booking_id
 
-        // Update booking status
+// Update booking status
         const { data: booking, error } = await supabase
             .from('bookings')
             .update({ status: 'confirmed' })
@@ -83,6 +83,22 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                 console.error('Email send failed:', e)
             }
         }
+
+        // Increment promo code usage
+        if (booking.promo_code) {
+            const { data: promo } = await supabase
+                .from('promo_codes')
+                .select('times_used')
+                .eq('code', booking.promo_code)
+                .single()
+            if (promo) {
+                await supabase
+                    .from('promo_codes')
+                    .update({ times_used: promo.times_used + 1 })
+                    .eq('code', booking.promo_code)
+            }
+        }
+
     }
 
     res.json({ received: true })
