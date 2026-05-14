@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const supabase = require('./supabase')
+const { body, validationResult } = require('express-validator')
 
 //Pricing table
 const PRICING = {
@@ -201,7 +202,20 @@ router.post('/calculate', async (req, res) => {
 })
 
 //POST - create a booking
-router.post('/', async (req, res) => {
+const bookingValidators = [
+    body('customer_name').trim().notEmpty().isLength({ max: 100 }).withMessage('Invalid name'),
+    body('customer_email').trim().isEmail().normalizeEmail().withMessage('Invalid email'),
+    body('customer_phone').trim().notEmpty().isLength({ max: 30 }).withMessage('Invalid phone'),
+    body('van_id').isIn(['johnny', 'eddie', 'chevy']).withMessage('Invalid van'),
+    body('start_date').isISO8601().withMessage('Invalid start date'),
+    body('end_date').isISO8601().withMessage('Invalid end date'),
+]
+
+router.post('/', bookingValidators, async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ error: errors.array()[0].msg })
+    }
     const {
         customer_name,
         customer_email,
